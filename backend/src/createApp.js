@@ -1,6 +1,8 @@
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
+import openApiSpec from './docs/openapi.js';
 import routes from './routes/index.js';
 import { errorMiddleware } from './middleware/error.js';
 
@@ -24,9 +26,15 @@ export function createApp() {
     res.json({
       name: 'Fitness Flow API',
       version: '1.0.0',
-      endpoints: ['/health', '/api/auth', '/api/slots', '/api/reservations'],
+      endpoints: ['/health', '/docs', '/docs.json', '/api/auth', '/api/slots', '/api/bookings'],
     });
   });
+
+  app.get('/docs.json', (req, res) => {
+    res.json(openApiSpec);
+  });
+
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
   app.use('/api', routes);
 
