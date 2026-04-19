@@ -2,7 +2,7 @@
 
 Este proyecto ha sido desarrollado bajo una filosofía **AI-first**, utilizando **GitHub Copilot** como copiloto de arquitectura y programación para maximizar la calidad técnica y la velocidad de entrega.
 
-## 🤖 Uso Estratégico de GitHub Copilot
+## Uso Estratégico de GitHub Copilot
 
 La IA no se utilizó solo para generar código, sino como un consultor técnico en los siguientes hitos:
 
@@ -21,7 +21,7 @@ La configuración de la red entre contenedores (Backend, Frontend y MySQL) y la 
 ### 4. Refactorización y Clean Code
 Cada módulo crítico pasó por una revisión asistida para detectar posibles fugas de memoria en los WebSockets (`socket.io`) y asegurar que los esquemas de validación de datos fueran robustos.
 
-## 🚀 Impacto en el Proyecto
+## Impacto en el Proyecto
 * **Eficiencia**: Reducción del tiempo de creación de *boilerplate* en un 50%, permitiendo mayor foco en la lógica de transacciones críticas.
 * **Robustez**: Implementación inmediata de estándares de seguridad y buenas prácticas de SQL que suelen obviarse en desarrollos rápidos.
 * **Consistencia**: Uniformidad total en el estilo de código y la estructura de carpetas.
