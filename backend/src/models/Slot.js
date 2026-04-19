@@ -13,6 +13,10 @@ export function defineSlotModel(sequelize) {
         type: DataTypes.STRING(160),
         allowNull: false,
       },
+      bikeLabel: {
+        type: DataTypes.STRING(64),
+        allowNull: true,
+      },
       startsAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -30,6 +34,10 @@ export function defineSlotModel(sequelize) {
         type: DataTypes.ENUM('open', 'closed'),
         allowNull: false,
         defaultValue: 'open',
+      },
+      classId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
       },
     },
     {

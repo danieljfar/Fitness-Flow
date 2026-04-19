@@ -8,6 +8,7 @@ function serializeSlot(slot) {
   return {
     id: slot.id,
     title: slot.title,
+    bikeLabel: slot.bikeLabel,
     startsAt: slot.startsAt,
     startsAtLabel: moment(slot.startsAt).format('YYYY-MM-DD HH:mm'),
     capacity: slot.capacity,
@@ -15,6 +16,21 @@ function serializeSlot(slot) {
     availableSeats,
     status: slot.status,
     isFull: availableSeats === 0,
+    class: slot.class
+      ? {
+          id: slot.class.id,
+          name: slot.class.name,
+          level: slot.class.level,
+          durationMinutes: slot.class.durationMinutes,
+          instructor: slot.class.instructor
+            ? {
+                id: slot.class.instructor.id,
+                name: slot.class.instructor.name,
+                specialty: slot.class.instructor.specialty,
+              }
+            : null,
+        }
+      : null,
     createdAt: slot.createdAt,
     updatedAt: slot.updatedAt,
   };

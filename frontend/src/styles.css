@@ -86,6 +86,78 @@ body {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
+.top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.country-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.country-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 0.92rem;
+  padding: 0.5rem 0.9rem;
+}
+
+.country-button:hover,
+.country-button:focus {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.country-dropdown-wrap {
+  position: relative;
+}
+
+.country-menu {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: 0;
+  min-width: 13rem;
+  padding: 0.45rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 40px rgba(17, 24, 39, 0.14);
+  backdrop-filter: blur(10px);
+  display: grid;
+  gap: 0.35rem;
+  transform: translateY(-6px) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: top left;
+  transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 20;
+}
+
+.country-menu.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.country-menu-item {
+  text-align: left;
+  border: none;
+  border-radius: 0.7rem;
+}
+
+.auth-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .auth-card, .panel-card, .stat-card {
   backdrop-filter: blur(18px);
   background: var(--panel) !important;
@@ -205,8 +277,28 @@ body {
   box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.1);
 }
 
+.modal-content {
+  border-radius: 1.1rem;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+}
+
 @media (max-width: 992px) {
   .hero-title {
     max-width: none;
+  }
+
+  .country-control {
+    width: 100%;
+  }
+
+  .country-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .country-menu {
+    width: 100%;
+    min-width: 0;
+    transform-origin: top center;
   }
 }

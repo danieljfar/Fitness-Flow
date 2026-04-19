@@ -17,9 +17,16 @@ function serializeBooking(booking) {
       ? {
           id: booking.slot.id,
           title: booking.slot.title,
+          bikeLabel: booking.slot.bikeLabel,
           startsAt: booking.slot.startsAt,
           capacity: booking.slot.capacity,
           bookedCount: booking.slot.bookedCount,
+          class: booking.slot.class
+            ? {
+                id: booking.slot.class.id,
+                name: booking.slot.class.name,
+              }
+            : null,
         }
       : null,
   };

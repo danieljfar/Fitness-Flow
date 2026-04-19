@@ -16,6 +16,7 @@ const openApiSpec = {
     { name: 'Auth' },
     { name: 'Slots' },
     { name: 'Bookings' },
+    { name: 'Admin' },
   ],
   components: {
     securitySchemes: {
@@ -94,6 +95,46 @@ const openApiSpec = {
               bookedCount: { type: 'integer' },
             },
           },
+        },
+      },
+      Instructor: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string' },
+          email: { type: 'string', nullable: true },
+          specialty: { type: 'string', nullable: true },
+          bio: { type: 'string', nullable: true },
+          status: { type: 'string', enum: ['active', 'inactive'] },
+        },
+      },
+      Class: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string' },
+          description: { type: 'string', nullable: true },
+          level: { type: 'string', enum: ['beginner', 'intermediate', 'advanced'] },
+          durationMinutes: { type: 'integer' },
+          status: { type: 'string', enum: ['active', 'inactive'] },
+          instructorId: { type: 'integer' },
+          instructor: {
+            allOf: [{ $ref: '#/components/schemas/Instructor' }],
+            nullable: true,
+          },
+        },
+      },
+      AdminDashboardMetrics: {
+        type: 'object',
+        properties: {
+          users: { type: 'integer' },
+          instructors: { type: 'integer' },
+          classes: { type: 'integer' },
+          slots: { type: 'integer' },
+          activeBookings: { type: 'integer' },
+          totalCapacity: { type: 'integer' },
+          totalBooked: { type: 'integer' },
+          occupancyRate: { type: 'number' },
         },
       },
     },
@@ -355,6 +396,224 @@ const openApiSpec = {
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/admin/dashboard': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Admin dashboard metrics',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Admin metrics',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    metrics: { $ref: '#/components/schemas/AdminDashboardMetrics' },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: 'Admin access required',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/admin/instructors': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List instructors',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Instructor list',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    instructors: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Instructor' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Admin'],
+        summary: 'Create instructor',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name'],
+                properties: {
+                  name: { type: 'string' },
+                  email: { type: 'string' },
+                  specialty: { type: 'string' },
+                  bio: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Instructor created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    instructor: { $ref: '#/components/schemas/Instructor' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/admin/classes': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List classes',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Class list',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    classes: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Class' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Admin'],
+        summary: 'Create class',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'instructorId'],
+                properties: {
+                  name: { type: 'string' },
+                  description: { type: 'string' },
+                  level: { type: 'string', enum: ['beginner', 'intermediate', 'advanced'] },
+                  durationMinutes: { type: 'integer' },
+                  instructorId: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Class created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    class: { $ref: '#/components/schemas/Class' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/admin/slots': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List admin slots',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Slot list',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    slots: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Slot' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Admin'],
+        summary: 'Create slot',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['classId', 'startsAt', 'capacity'],
+                properties: {
+                  classId: { type: 'integer' },
+                  startsAt: { type: 'string', format: 'date-time' },
+                  capacity: { type: 'integer' },
+                  bikeLabel: { type: 'string' },
+                  title: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Slot created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    slot: { $ref: '#/components/schemas/Slot' },
+                  },
+                },
               },
             },
           },

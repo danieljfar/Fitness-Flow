@@ -53,3 +53,43 @@ export function apiCancelReservation(token, id) {
     token,
   });
 }
+
+export function apiAdminDashboard(token) {
+  return request('/admin/dashboard', { token });
+}
+
+export function apiAdminInstructors(token) {
+  return request('/admin/instructors', { token });
+}
+
+export function apiAdminCreateInstructor(token, data) {
+  return request('/admin/instructors', {
+    method: 'POST',
+    token,
+    body: data,
+  });
+}
+
+export function apiAdminClasses(token) {
+  return request('/admin/classes', { token });
+}
+
+export function apiAdminCreateClass(token, data) {
+  return request('/admin/classes', {
+    method: 'POST',
+    token,
+    body: data,
+  });
+}
+
+export function apiAdminSlots(token) {
+  return request('/admin/slots', { token });
+}
+
+export function apiAdminCreateSlot(token, data) {
+  return request('/admin/slots', {
+    method: 'POST',
+    token,
+    body: data,
+  });
+}

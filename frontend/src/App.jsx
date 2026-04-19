@@ -1,9 +1,17 @@
-import { useEffect, useState } from 'react';
-import { Badge, Button, Card, Col, Container, Form, ListGroup, Row, Stack } from 'react-bootstrap';
-import { FiActivity, FiArrowRight, FiClock, FiLock, FiRefreshCw, FiUsers } from 'react-icons/fi';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Container, Form, Modal, Row } from 'react-bootstrap';
+import { FiArrowRight } from 'react-icons/fi';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
+import { getTranslator } from './i18n/index.js';
 import {
+  apiAdminClasses,
+  apiAdminCreateClass,
+  apiAdminCreateInstructor,
+  apiAdminCreateSlot,
+  apiAdminDashboard,
+  apiAdminInstructors,
+  apiAdminSlots,
   apiCancelReservation,
   apiCreateReservation,
   apiLogin,
@@ -12,8 +20,18 @@ import {
   apiRegister,
   apiSlots,
 } from './api.js';
+import { Home } from './pages/Home.jsx';
+import { Profile } from './pages/Profile.jsx';
+import { Slots } from './pages/Slots.jsx';
+import { Dashboard } from './pages/admin/Dashboard.jsx';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
+
+const COUNTRY_OPTIONS = [
+  { code: 'CO', locale: 'es-CO', lang: 'es', labelKey: 'countryColombia' },
+  { code: 'MX', locale: 'es-MX', lang: 'es', labelKey: 'countryMexico' },
+  { code: 'US', locale: 'en-US', lang: 'en', labelKey: 'countryUnitedStates' },
+];
 
 const emptyForm = {
   name: '',
@@ -21,31 +39,46 @@ const emptyForm = {
   password: '',
 };
 
-function formatDateTime(value) {
-  return new Intl.DateTimeFormat('en-US', {
+const emptyInstructorForm = {
+  name: '',
+  email: '',
+  specialty: '',
+  bio: '',
+};
+
+const emptyClassForm = {
+  name: '',
+  instructorId: '',
+  level: 'beginner',
+  durationMinutes: 45,
+  description: '',
+};
+
+const emptySlotForm = {
+  classId: '',
+  bikeLabel: '',
+  startsAt: '',
+  capacity: 1,
+  title: '',
+};
+
+function getCountryFromStorage() {
+  const saved = localStorage.getItem('fitness-country') || 'CO';
+  return COUNTRY_OPTIONS.find((country) => country.code === saved)?.code || COUNTRY_OPTIONS[0].code;
+}
+
+function formatDateTimeByLocale(value, locale) {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value));
 }
 
-function StatCard({ icon, label, value }) {
-  return (
-    <Card className="stat-card h-100">
-      <Card.Body>
-        <Stack direction="horizontal" gap={3}>
-          <div className="stat-icon">{icon}</div>
-          <div>
-            <div className="stat-label">{label}</div>
-            <div className="stat-value">{value}</div>
-          </div>
-        </Stack>
-      </Card.Body>
-    </Card>
-  );
-}
-
 export function App() {
   const [authMode, setAuthMode] = useState('login');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isCountrySelectorOpen, setIsCountrySelectorOpen] = useState(false);
+  const [country, setCountry] = useState(getCountryFromStorage);
   const [form, setForm] = useState(emptyForm);
   const [token, setToken] = useState(() => localStorage.getItem('fitness-token') || '');
   const [user, setUser] = useState(null);
@@ -53,6 +86,45 @@ export function App() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [booting, setBooting] = useState(true);
+  const [adminMetrics, setAdminMetrics] = useState(null);
+  const [adminInstructors, setAdminInstructors] = useState([]);
+  const [adminClasses, setAdminClasses] = useState([]);
+  const [adminSlots, setAdminSlots] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [instructorForm, setInstructorForm] = useState(emptyInstructorForm);
+  const [classForm, setClassForm] = useState(emptyClassForm);
+  const [slotForm, setSlotForm] = useState(emptySlotForm);
+  const countrySelectorRef = useRef(null);
+
+  const selectedCountry = useMemo(
+    () => COUNTRY_OPTIONS.find((countryOption) => countryOption.code === country) || COUNTRY_OPTIONS[0],
+    [country]
+  );
+
+  const language = selectedCountry.lang;
+  const locale = selectedCountry.locale;
+  const t = getTranslator(language);
+
+  const formatDateTime = (value) => formatDateTimeByLocale(value, locale);
+
+  useEffect(() => {
+    localStorage.setItem('fitness-country', country);
+  }, [country]);
+
+  useEffect(() => {
+    function onDocumentClick(event) {
+      if (!countrySelectorRef.current) {
+        return;
+      }
+
+      if (!countrySelectorRef.current.contains(event.target)) {
+        setIsCountrySelectorOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', onDocumentClick);
+    return () => document.removeEventListener('mousedown', onDocumentClick);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -130,6 +202,58 @@ export function App() {
     };
   }, [token]);
 
+  useEffect(() => {
+    async function loadAdminData() {
+      if (!token || user?.role !== 'admin') {
+        setAdminMetrics(null);
+        setAdminInstructors([]);
+        setAdminClasses([]);
+        setAdminSlots([]);
+        return;
+      }
+
+      setAdminLoading(true);
+
+      try {
+        const [metricsPayload, instructorsPayload, classesPayload, slotsPayload] = await Promise.all([
+          apiAdminDashboard(token),
+          apiAdminInstructors(token),
+          apiAdminClasses(token),
+          apiAdminSlots(token),
+        ]);
+
+        setAdminMetrics(metricsPayload.metrics || null);
+        setAdminInstructors(instructorsPayload.instructors || []);
+        setAdminClasses(classesPayload.classes || []);
+        setAdminSlots(slotsPayload.slots || []);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setAdminLoading(false);
+      }
+    }
+
+    loadAdminData();
+  }, [token, user?.role]);
+
+  async function refreshAdminData() {
+    if (!token || user?.role !== 'admin') {
+      return;
+    }
+
+    const [metricsPayload, instructorsPayload, classesPayload, slotsPayload] = await Promise.all([
+      apiAdminDashboard(token),
+      apiAdminInstructors(token),
+      apiAdminClasses(token),
+      apiAdminSlots(token),
+    ]);
+
+    setAdminMetrics(metricsPayload.metrics || null);
+    setAdminInstructors(instructorsPayload.instructors || []);
+    setAdminClasses(classesPayload.classes || []);
+    setAdminSlots(slotsPayload.slots || []);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setLoading(true);
@@ -144,7 +268,8 @@ export function App() {
       setToken(payload.token);
       setUser(payload.user);
       setForm(emptyForm);
-      toast.success(authMode === 'register' ? 'Account created' : 'Welcome back');
+      setShowAuthModal(false);
+      toast.success(authMode === 'register' ? t('authCreateAccount') : t('authWelcomeBack'));
 
       const reservationsPayload = await apiMyReservations(payload.token);
       setReservations(reservationsPayload.reservations || []);
@@ -157,13 +282,15 @@ export function App() {
 
   async function handleReserve(slotId) {
     if (!token) {
-      toast.error('Sign in first');
+      setAuthMode('login');
+      setShowAuthModal(true);
+      toast.error(t('signInFirst'));
       return;
     }
 
     try {
       await apiCreateReservation(token, slotId);
-      toast.success('Reservation created');
+      toast.success(t('reservationCreated'));
       const reservationsPayload = await apiMyReservations(token);
       setReservations(reservationsPayload.reservations || []);
     } catch (error) {
@@ -174,7 +301,7 @@ export function App() {
   async function handleCancel(reservationId) {
     try {
       await apiCancelReservation(token, reservationId);
-      toast.success('Reservation cancelled');
+      toast.success(t('reservationCancelled'));
       const reservationsPayload = await apiMyReservations(token);
       setReservations(reservationsPayload.reservations || []);
     } catch (error) {
@@ -182,12 +309,74 @@ export function App() {
     }
   }
 
+  async function handleCreateInstructor(event) {
+    event.preventDefault();
+
+    try {
+      await apiAdminCreateInstructor(token, instructorForm);
+      setInstructorForm(emptyInstructorForm);
+      await refreshAdminData();
+      toast.success(t('instructorCreated'));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function handleCreateClass(event) {
+    event.preventDefault();
+
+    try {
+      await apiAdminCreateClass(token, {
+        ...classForm,
+        instructorId: Number(classForm.instructorId),
+        durationMinutes: Number(classForm.durationMinutes),
+      });
+      setClassForm(emptyClassForm);
+      await refreshAdminData();
+      toast.success(t('classCreated'));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function handleCreateSlot(event) {
+    event.preventDefault();
+
+    try {
+      await apiAdminCreateSlot(token, {
+        ...slotForm,
+        classId: Number(slotForm.classId),
+        capacity: Number(slotForm.capacity),
+      });
+      setSlotForm(emptySlotForm);
+      const [slotsPayload, reservationsPayload] = await Promise.all([
+        apiSlots(),
+        token ? apiMyReservations(token) : Promise.resolve({ reservations: [] }),
+      ]);
+      setSlots(slotsPayload.slots || []);
+      setReservations(reservationsPayload.reservations || []);
+      await refreshAdminData();
+      toast.success(t('slotCreated'));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  function handleCountrySelect(nextCountryCode) {
+    setCountry(nextCountryCode);
+    setIsCountrySelectorOpen(false);
+  }
+
   function logout() {
     localStorage.removeItem('fitness-token');
     setToken('');
     setUser(null);
     setReservations([]);
-    toast.success('Signed out');
+    setAdminMetrics(null);
+    setAdminInstructors([]);
+    setAdminClasses([]);
+    setAdminSlots([]);
+    toast.success(t('authSignedOut'));
   }
 
   const totalSeats = slots.reduce((sum, slot) => sum + slot.availableSeats, 0);
@@ -199,195 +388,127 @@ export function App() {
       <div className="page-glow page-glow-left" />
       <div className="page-glow page-glow-right" />
 
-      <Container className="py-4 py-lg-5 position-relative">
-        <Row className="align-items-center g-4 mb-4 mb-lg-5">
-          <Col lg={8}>
-            <div className="eyebrow mb-2">
-              <FiActivity className="me-2" />
-              Node.js v24, MySQL, Sequelize, Socket.IO
-            </div>
-            <h1 className="hero-title mb-3">Fitness Flow</h1>
-            <p className="hero-copy mb-4">
-              High-concurrency reservation demo with JWT auth, transactional booking, and live slot updates.
-            </p>
-            <Stack direction="horizontal" gap={3} className="flex-wrap">
-              <Badge bg="light" text="dark" className="pill">
-                <FiUsers className="me-2" />
-                {slots.length} slots
-              </Badge>
-              <Badge bg="light" text="dark" className="pill">
-                <FiClock className="me-2" />
-                {totalSeats} open seats
-              </Badge>
-              <Badge bg="light" text="dark" className="pill">
-                <FiLock className="me-2" />
-                Transactions + row locks
-              </Badge>
-            </Stack>
-          </Col>
-          <Col lg={4}>
-            <Card className="auth-card shadow-lg border-0">
-              <Card.Body className="p-4">
-                <div className="d-flex gap-2 mb-3">
-                  <Button
-                    variant={authMode === 'login' ? 'dark' : 'outline-dark'}
-                    className="flex-fill rounded-pill"
-                    onClick={() => setAuthMode('login')}
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    variant={authMode === 'register' ? 'dark' : 'outline-dark'}
-                    className="flex-fill rounded-pill"
-                    onClick={() => setAuthMode('register')}
-                  >
-                    Register
-                  </Button>
-                </div>
-
-                <Form onSubmit={handleSubmit}>
-                  {authMode === 'register' ? (
-                    <Form.Group className="mb-3">
-                      <Form.Label>Name</Form.Label>
-                      <Form.Control
-                        value={form.name}
-                        onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                        placeholder="Your name"
-                      />
-                    </Form.Group>
-                  ) : null}
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control
-                      type="email"
-                      value={form.email}
-                      onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                      placeholder="name@example.com"
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-4">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control
-                      type="password"
-                      value={form.password}
-                      onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                      placeholder="Your password"
-                    />
-                  </Form.Group>
-
-                  <Button type="submit" className="w-100 rounded-pill action-button" disabled={loading}>
-                    {loading ? 'Processing...' : authMode === 'register' ? 'Create account' : 'Sign in'}
-                    <FiArrowRight className="ms-2" />
-                  </Button>
-                </Form>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        <Row className="g-3 g-lg-4 mb-4">
-          <Col md={4}>
-            <StatCard icon={<FiUsers />} label="Available seats" value={booting ? '...' : totalSeats} />
-          </Col>
-          <Col md={4}>
-            <StatCard icon={<FiRefreshCw />} label="Live slots" value={booting ? '...' : liveSlots} />
-          </Col>
-          <Col md={4}>
-            <StatCard icon={<FiClock />} label="Your reservations" value={token ? totalReservations : 'Sign in'} />
-          </Col>
-        </Row>
+      <Container className="py-4 py-lg-5 position-relative" ref={countrySelectorRef}>
+        <Home
+          t={t}
+          user={user}
+          slotsCount={slots.length}
+          totalSeats={totalSeats}
+          liveSlots={liveSlots}
+          totalReservations={totalReservations}
+          booting={booting}
+          selectedCountry={selectedCountry}
+          countryOptions={COUNTRY_OPTIONS}
+          isCountrySelectorOpen={isCountrySelectorOpen}
+          onToggleCountrySelector={() => setIsCountrySelectorOpen((value) => !value)}
+          onSelectCountry={handleCountrySelect}
+          onOpenAuthModal={() => setShowAuthModal(true)}
+          onLogout={logout}
+        />
 
         <Row className="g-4">
-          <Col xl={7}>
-            <Card className="panel-card h-100 border-0 shadow-sm">
-              <Card.Body className="p-4">
-                <div className="section-heading mb-3">Session slots</div>
-                <div className="slot-grid">
-                  {slots.map((slot) => {
-                    const isMine = reservations.some((reservation) => reservation.slotId === slot.id && reservation.status === 'active');
-
-                    return (
-                      <div key={slot.id} className={`slot-item ${slot.isFull ? 'full' : ''}`}>
-                        <div className="d-flex justify-content-between align-items-start gap-3 mb-2">
-                          <div>
-                            <div className="slot-title">{slot.title}</div>
-                            <div className="slot-meta">{slot.startsAtLabel}</div>
-                          </div>
-                          <Badge bg={slot.isFull ? 'danger' : 'success'}>{slot.isFull ? 'Full' : 'Open'}</Badge>
-                        </div>
-
-                        <div className="slot-stats mb-3">
-                          <span>{slot.availableSeats} seats left</span>
-                          <span>{slot.bookedCount}/{slot.capacity}</span>
-                        </div>
-
-                        <Button
-                          variant={isMine ? 'outline-secondary' : 'dark'}
-                          className="w-100 rounded-pill"
-                          disabled={slot.isFull || isMine || !token}
-                          onClick={() => handleReserve(slot.id)}
-                        >
-                          {isMine ? 'Reserved' : slot.isFull ? 'Sold out' : 'Reserve now'}
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          <Col xl={5}>
-            <Card className="panel-card h-100 border-0 shadow-sm">
-              <Card.Body className="p-4">
-                <div className="d-flex align-items-center justify-content-between mb-3">
-                  <div className="section-heading">Your reservations</div>
-                  {user ? (
-                    <Button variant="outline-dark" size="sm" className="rounded-pill" onClick={logout}>
-                      Logout
-                    </Button>
-                  ) : null}
-                </div>
-
-                {user ? <div className="welcome-line mb-3">Signed in as {user.name}</div> : null}
-
-                <ListGroup variant="flush" className="reservation-list">
-                  {reservations.length === 0 ? (
-                    <div className="empty-state">
-                      {token ? 'No reservations yet. Pick a slot on the left.' : 'Sign in to book and manage sessions.'}
-                    </div>
-                  ) : null}
-
-                  {reservations.map((reservation) => (
-                    <ListGroup.Item key={reservation.id} className="reservation-row">
-                      <div className="d-flex justify-content-between gap-3">
-                        <div>
-                          <div className="slot-title mb-1">{reservation.slot?.title}</div>
-                          <div className="slot-meta">{reservation.slot?.startsAt ? formatDateTime(reservation.slot.startsAt) : 'Scheduled'}</div>
-                        </div>
-                        <Badge bg={reservation.status === 'active' ? 'primary' : 'secondary'}>{reservation.status}</Badge>
-                      </div>
-
-                      {reservation.status === 'active' ? (
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          className="mt-3 rounded-pill"
-                          onClick={() => handleCancel(reservation.id)}
-                        >
-                          Cancel reservation
-                        </Button>
-                      ) : null}
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              </Card.Body>
-            </Card>
-          </Col>
+          <Slots
+            t={t}
+            slots={slots}
+            reservations={reservations}
+            formatDateTime={formatDateTime}
+            onReserve={handleReserve}
+          />
+          <Profile
+            t={t}
+            token={token}
+            reservations={reservations}
+            formatDateTime={formatDateTime}
+            onOpenAuthModal={() => setShowAuthModal(true)}
+            onCancel={handleCancel}
+          />
         </Row>
+
+        {user?.role === 'admin' ? (
+          <Dashboard
+            t={t}
+            adminLoading={adminLoading}
+            adminMetrics={adminMetrics}
+            instructorForm={instructorForm}
+            setInstructorForm={setInstructorForm}
+            classForm={classForm}
+            setClassForm={setClassForm}
+            slotForm={slotForm}
+            setSlotForm={setSlotForm}
+            adminInstructors={adminInstructors}
+            adminClasses={adminClasses}
+            adminSlots={adminSlots}
+            formatDateTime={formatDateTime}
+            onCreateInstructor={handleCreateInstructor}
+            onCreateClass={handleCreateClass}
+            onCreateSlot={handleCreateSlot}
+          />
+        ) : null}
       </Container>
+
+      <Modal show={showAuthModal} onHide={() => setShowAuthModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{t('authModalTitle')}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="slot-meta mb-3">{t('authModalSubtitle')}</p>
+
+          <div className="d-flex gap-2 mb-3">
+            <Button
+              variant={authMode === 'login' ? 'dark' : 'outline-dark'}
+              className="flex-fill rounded-pill"
+              onClick={() => setAuthMode('login')}
+            >
+              {t('login')}
+            </Button>
+            <Button
+              variant={authMode === 'register' ? 'dark' : 'outline-dark'}
+              className="flex-fill rounded-pill"
+              onClick={() => setAuthMode('register')}
+            >
+              {t('register')}
+            </Button>
+          </div>
+
+          <Form onSubmit={handleSubmit}>
+            {authMode === 'register' ? (
+              <Form.Group className="mb-3">
+                <Form.Label>{t('authName')}</Form.Label>
+                <Form.Control
+                  value={form.name}
+                  onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                  placeholder={t('authYourName')}
+                />
+              </Form.Group>
+            ) : null}
+
+            <Form.Group className="mb-3">
+              <Form.Label>{t('authEmail')}</Form.Label>
+              <Form.Control
+                type="email"
+                value={form.email}
+                onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                placeholder="name@example.com"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4">
+              <Form.Label>{t('authPassword')}</Form.Label>
+              <Form.Control
+                type="password"
+                value={form.password}
+                onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                placeholder={t('authPassword')}
+              />
+            </Form.Group>
+
+            <Button type="submit" className="w-100 rounded-pill action-button" disabled={loading}>
+              {loading ? t('authProcessing') : authMode === 'register' ? t('register') : t('login')}
+              <FiArrowRight className="ms-2" />
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
