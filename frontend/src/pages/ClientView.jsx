@@ -1,7 +1,9 @@
+import { useMemo, useState } from 'react';
 import { Row } from 'react-bootstrap';
 import { Home } from './Home.jsx';
 import { Classes } from './Classes.jsx';
 import { Profile } from './Profile.jsx';
+import { InstructorProfile } from './InstructorProfile.jsx';
 
 export function ClientView({
   t,
@@ -14,12 +16,42 @@ export function ClientView({
   booting,
   featuredClasses,
   highlightedInstructors,
+  instructors,
   formatDateTime,
   token,
   onReserve,
   onCancel,
   onOpenAuthModal,
 }) {
+  const [selectedInstructorId, setSelectedInstructorId] = useState(null);
+
+  const selectedInstructor = useMemo(
+    () => instructors.find((instructor) => instructor.id === selectedInstructorId) || null,
+    [instructors, selectedInstructorId]
+  );
+
+  function handleSelectInstructor(instructor) {
+    if (!instructor?.id) {
+      return;
+    }
+    setSelectedInstructorId(instructor.id);
+  }
+
+  function handleBackToClient() {
+    setSelectedInstructorId(null);
+  }
+
+  if (selectedInstructor) {
+    return (
+      <InstructorProfile
+        t={t}
+        instructor={selectedInstructor}
+        formatDateTime={formatDateTime}
+        onBack={handleBackToClient}
+      />
+    );
+  }
+
   return (
     <>
       <Home
@@ -33,6 +65,7 @@ export function ClientView({
         featuredClasses={featuredClasses}
         highlightedInstructors={highlightedInstructors}
         formatDateTime={formatDateTime}
+        onSelectInstructor={handleSelectInstructor}
       />
 
       <section className="client-section-intro panel-card border-0 mb-4">

@@ -132,6 +132,16 @@ body {
   font-weight: 600;
 }
 
+.instructor-chip-button {
+  cursor: pointer;
+  text-align: left;
+}
+
+.instructor-chip-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1);
+}
+
 .top-controls {
   display: flex;
   justify-content: space-between;
@@ -314,6 +324,18 @@ body {
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
+.instructor-highlight-button {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.instructor-highlight-button:focus-visible,
+.instructor-chip-button:focus-visible {
+  outline: 2px solid rgba(15, 118, 110, 0.45);
+  outline-offset: 2px;
+}
+
 .class-item:hover,
 .featured-class-card:hover,
 .instructor-highlight-item:hover {
@@ -427,6 +449,26 @@ body {
 
 .admin-occupancy-bar .progress-bar {
   background: linear-gradient(135deg, #0f766e, #14b8a6);
+}
+
+.instructor-profile-page {
+  animation: rise-in 260ms ease-out both;
+}
+
+.instructor-profile-title {
+  font-family: Archivo, sans-serif;
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  font-weight: 900;
+}
+
+.instructor-kpi-card {
+  height: 100%;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 1rem;
 }
 
 .admin-item-title {

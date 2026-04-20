@@ -28,6 +28,7 @@ export function Home({
 	featuredClasses,
 	highlightedInstructors,
 	formatDateTime,
+	onSelectInstructor,
 }) {
 	return (
 		<>
@@ -61,10 +62,15 @@ export function Home({
 							<div className="hero-side-title mb-3">{t('heroInstructorPanel')}</div>
 							<div className="instructor-chip-grid">
 								{highlightedInstructors.map((instructor) => (
-									<div key={instructor.name} className="instructor-chip">
+									<button
+										type="button"
+										key={instructor.id || instructor.name}
+										className="instructor-chip instructor-chip-button"
+										onClick={() => onSelectInstructor?.(instructor)}
+									>
 										<FiStar />
 										<span>{instructor.name}</span>
-									</div>
+									</button>
 								))}
 							</div>
 						</Card.Body>
@@ -121,10 +127,15 @@ export function Home({
 									<div className="empty-state">{t('noInstructorsYet')}</div>
 								) : (
 									highlightedInstructors.map((instructor) => (
-										<div key={`${instructor.name}-${instructor.specialty}`} className="instructor-highlight-item">
+										<button
+											type="button"
+											key={`${instructor.id || instructor.name}-${instructor.specialty}`}
+											className="instructor-highlight-item instructor-highlight-button"
+											onClick={() => onSelectInstructor?.(instructor)}
+										>
 											<div className="class-title mb-1">{instructor.name}</div>
 											<div className="class-meta">{instructor.specialty || t('noSpecialty')}</div>
-										</div>
+										</button>
 									))
 								)}
 							</div>

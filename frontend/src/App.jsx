@@ -516,14 +516,55 @@ export function App() {
   const totalReservations = reservations.length;
   const liveClasses = classes.filter((classSession) => classSession.availableSeats > 0).length;
   const featuredClasses = classes.slice(0, 3);
-  const highlightedInstructors = classes
-    .map((classSession) => ({
-      name: classSession.class?.instructor?.name || classSession.instructor?.name || t('coachLabel'),
-      specialty: classSession.class?.instructor?.specialty || classSession.class?.name || t('noSpecialty'),
-    }))
-    .filter((instructor) => instructor.name)
-    .filter((instructor, index, array) => array.findIndex((item) => item.name === instructor.name) === index)
-    .slice(0, 4);
+  const instructors = useMemo(() => {
+    const byInstructor = new Map();
+
+    classes.forEach((classSession) => {
+      const instructorEntity = classSession.class?.instructor || classSession.instructor;
+      const classEntity = classSession.class || null;
+
+      const fallbackName = instructorEntity?.name || t('coachLabel');
+      const fallbackSpecialty = instructorEntity?.specialty || classEntity?.name || t('noSpecialty');
+      const id = instructorEntity?.id || `${fallbackName}-${fallbackSpecialty}`;
+
+      if (!byInstructor.has(id)) {
+        byInstructor.set(id, {
+          id,
+          name: fallbackName,
+          specialty: fallbackSpecialty,
+          bio: instructorEntity?.bio || '',
+          email: instructorEntity?.email || '',
+          status: instructorEntity?.status || 'active',
+          classes: [],
+          sessions: [],
+          totalCapacity: 0,
+          totalBooked: 0,
+          occupancyRate: 0,
+        });
+      }
+
+      const current = byInstructor.get(id);
+      current.sessions.push(classSession);
+      current.totalCapacity += Number(classSession.capacity) || 0;
+      current.totalBooked += Number(classSession.bookedCount) || 0;
+
+      if (classEntity && classEntity.id && !current.classes.some((item) => item.id === classEntity.id)) {
+        current.classes.push(classEntity);
+      }
+    });
+
+    return Array.from(byInstructor.values())
+      .map((instructor) => ({
+        ...instructor,
+        occupancyRate:
+          instructor.totalCapacity > 0
+            ? Math.round((instructor.totalBooked / instructor.totalCapacity) * 100)
+            : 0,
+      }))
+      .sort((a, b) => b.sessions.length - a.sessions.length);
+  }, [classes, t]);
+
+  const highlightedInstructors = instructors.slice(0, 4);
 
   return (
     <div className="page-shell">
@@ -578,6 +619,7 @@ export function App() {
             booting={booting}
             featuredClasses={featuredClasses}
             highlightedInstructors={highlightedInstructors}
+            instructors={instructors}
             formatDateTime={formatDateTime}
             token={token}
             onReserve={handleReserve}
