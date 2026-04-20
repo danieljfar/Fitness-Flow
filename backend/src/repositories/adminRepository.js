@@ -1,4 +1,5 @@
-import { Booking, ClassModel, Instructor, User, sequelize } from '../database/index.js';
+import { Op } from 'sequelize';
+import { Booking, ClassModel, Credit, Instructor, User, sequelize } from '../database/index.js';
 
 const CLASS_INCLUDES = [
   {
@@ -55,6 +56,67 @@ export function listClasses() {
 
 export function createClass(data) {
   return ClassModel.create(data);
+}
+
+export function findClassById(classId, transaction) {
+  return ClassModel.findByPk(classId, {
+    transaction,
+    lock: transaction?.LOCK?.UPDATE,
+    include: CLASS_INCLUDES,
+  });
+}
+
+export async function updateClassById(classId, data) {
+  const classItem = await ClassModel.findByPk(classId);
+
+  if (!classItem) {
+    return null;
+  }
+
+  await classItem.update(data);
+
+  return ClassModel.findByPk(classId, {
+    include: CLASS_INCLUDES,
+  });
+}
+
+export function searchUsers(query, limit = 20) {
+  const sanitized = (query || '').trim();
+  const where = sanitized
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${sanitized}%` } },
+          { email: { [Op.like]: `%${sanitized}%` } },
+        ],
+      }
+    : undefined;
+
+  return User.findAll({
+    where,
+    include: [
+      {
+        model: Credit,
+        as: 'credit',
+        required: false,
+        attributes: ['balance'],
+      },
+    ],
+    order: [['name', 'ASC']],
+    limit,
+  });
+}
+
+export function findUserWithCreditById(userId) {
+  return User.findByPk(userId, {
+    include: [
+      {
+        model: Credit,
+        as: 'credit',
+        required: false,
+        attributes: ['balance'],
+      },
+    ],
+  });
 }
 
 const RESERVATION_INCLUDES = [

@@ -159,3 +159,19 @@ export function apiAdminCreateReservation(token, classId, userId) {
     body: { userId },
   });
 }
+
+export function apiAdminAssignCredits(token, userId, units) {
+  return request('/admin/credits/assign', {
+    method: 'POST',
+    token,
+    body: { userId, units },
+  });
+}
+
+export function apiAdminUpdateCredits(token, userId, data) {
+  return request(`/admin/credits/${userId}`, {
+    method: 'PATCH',
+    token,
+    body: data,
+  });
+}

@@ -19,6 +19,18 @@ export function AdminView({
   onToggleReservations,
   onCreateReservation,
   onDeleteReservation,
+  creditsQuery,
+  creditUsers,
+  creditsLoading,
+  selectedCreditUser,
+  creditEditValue,
+  onCreditsQueryChange,
+  onSelectCreditUser,
+  onAssignCredits,
+  onSubtractCredits,
+  onSetCredits,
+  onDeleteCredits,
+  onCreditEditValueChange,
 }) {
   return (
     <Row className="g-4 mt-1">
@@ -48,6 +60,18 @@ export function AdminView({
           onToggleReservations={onToggleReservations}
           onCreateReservation={onCreateReservation}
           onDeleteReservation={onDeleteReservation}
+          creditsQuery={creditsQuery}
+          creditUsers={creditUsers}
+          creditsLoading={creditsLoading}
+          selectedCreditUser={selectedCreditUser}
+          creditEditValue={creditEditValue}
+          onCreditsQueryChange={onCreditsQueryChange}
+          onSelectCreditUser={onSelectCreditUser}
+          onAssignCredits={onAssignCredits}
+          onSubtractCredits={onSubtractCredits}
+          onSetCredits={onSetCredits}
+          onDeleteCredits={onDeleteCredits}
+          onCreditEditValueChange={onCreditEditValueChange}
         />
       </Col>
     </Row>

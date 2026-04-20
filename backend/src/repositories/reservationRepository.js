@@ -39,3 +39,12 @@ export function findActiveBooking(userId, classId, transaction) {
     lock: transaction?.LOCK?.UPDATE,
   });
 }
+
+export function findActiveBookingsByClassId(classId, transaction) {
+  return Booking.findAll({
+    where: { classId, status: 'active' },
+    transaction,
+    lock: transaction?.LOCK?.UPDATE,
+    include: [CLASS_INCLUDE],
+  });
+}

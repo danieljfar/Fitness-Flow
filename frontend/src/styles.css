@@ -497,6 +497,40 @@ body {
   gap: 0.65rem;
 }
 
+.admin-users-search-results {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-user-search-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.admin-user-search-item:hover {
+  border-color: rgba(15, 118, 110, 0.32);
+  transform: translateY(-1px);
+}
+
+.admin-user-search-item.is-selected {
+  border-color: rgba(15, 118, 110, 0.5);
+  background: rgba(240, 253, 250, 0.72);
+}
+
+.admin-credit-actions {
+  border-top: 1px dashed rgba(17, 24, 39, 0.14);
+  padding-top: 0.85rem;
+}
+
+.admin-credit-input {
+  max-width: 12rem;
+}
+
 .reservation-admin-row {
   display: flex;
   justify-content: space-between;

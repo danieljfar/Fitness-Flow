@@ -2,6 +2,7 @@ import { Card, Col, Row, Stack } from 'react-bootstrap';
 import { FiActivity, FiArrowRight, FiClock, FiLock, FiUsers } from 'react-icons/fi';
 import { InstructorsManager } from './InstructorsManager.jsx';
 import { ClassesManager } from './ClassesManager.jsx';
+import { CreditsManager } from './CreditsManager.jsx';
 
 function StatCard({ icon, label, value }) {
   return (
@@ -37,6 +38,18 @@ export function Dashboard({
   onToggleReservations,
   onCreateReservation,
   onDeleteReservation,
+  creditsQuery,
+  creditUsers,
+  creditsLoading,
+  selectedCreditUser,
+  creditEditValue,
+  onCreditsQueryChange,
+  onSelectCreditUser,
+  onAssignCredits,
+  onSubtractCredits,
+  onSetCredits,
+  onDeleteCredits,
+  onCreditEditValueChange,
 }) {
   return (
     <Card className="panel-card border-0 shadow-sm">
@@ -92,6 +105,24 @@ export function Dashboard({
               onToggleReservations={onToggleReservations}
               onCreateReservation={onCreateReservation}
               onDeleteReservation={onDeleteReservation}
+            />
+          </Col>
+
+          <Col xs={12}>
+            <CreditsManager
+              t={t}
+              query={creditsQuery}
+              users={creditUsers}
+              loading={creditsLoading}
+              selectedUser={selectedCreditUser}
+              editValue={creditEditValue}
+              onQueryChange={onCreditsQueryChange}
+              onSelectUser={onSelectCreditUser}
+              onAssignCredits={onAssignCredits}
+              onSubtractCredits={onSubtractCredits}
+              onSetCredits={onSetCredits}
+              onDeleteCredits={onDeleteCredits}
+              onEditValueChange={onCreditEditValueChange}
             />
           </Col>
         </Row>

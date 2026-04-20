@@ -18,6 +18,7 @@ import {
 } from './models/forms.js';
 import {
   apiAdminClasses,
+  apiAdminAssignCredits,
   apiAdminCreateClass,
   apiAdminCreateInstructor,
   apiAdminClassReservations,
@@ -30,6 +31,7 @@ import {
   apiAdminCreateReservation,
   apiAdminSearchUsers,
   apiAdminUpdateClass,
+  apiAdminUpdateCredits,
   apiAdminUpdateInstructor,
   apiCancelReservation,
   apiCreateReservation,
@@ -76,6 +78,11 @@ export function App() {
   const [classReservationsByClass, setClassReservationsByClass] = useState({});
   const [expandedClassId, setExpandedClassId] = useState(null);
   const [reservationModalState, setReservationModalState] = useState(emptyReservationModalState);
+  const [creditsQuery, setCreditsQuery] = useState('');
+  const [creditUsers, setCreditUsers] = useState([]);
+  const [creditsLoading, setCreditsLoading] = useState(false);
+  const [selectedCreditUser, setSelectedCreditUser] = useState(null);
+  const [creditEditValue, setCreditEditValue] = useState('');
   const countrySelectorRef = useRef(null);
 
   const selectedCountry = useMemo(
@@ -233,6 +240,46 @@ export function App() {
       setAdminViewMode('client');
     }
   }, [user?.role]);
+
+  useEffect(() => {
+    if (!token || user?.role !== 'admin' || adminViewMode !== 'admin') {
+      setCreditsLoading(false);
+      setCreditUsers([]);
+      return;
+    }
+
+    const query = creditsQuery.trim();
+
+    if (query.length < 2) {
+      setCreditUsers([]);
+      setCreditsLoading(false);
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(async () => {
+      setCreditsLoading(true);
+
+      try {
+        const payload = await apiAdminSearchUsers(token, query);
+        setCreditUsers(payload.users || []);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setCreditsLoading(false);
+      }
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [token, user?.role, adminViewMode, creditsQuery]);
+
+  useEffect(() => {
+    if (!selectedCreditUser) {
+      setCreditEditValue('');
+      return;
+    }
+
+    setCreditEditValue(String(selectedCreditUser.credits ?? 0));
+  }, [selectedCreditUser]);
 
   async function refreshAdminData() {
     if (!token || user?.role !== 'admin') {
@@ -463,6 +510,105 @@ export function App() {
     }
   }
 
+  async function handleAssignCredits(units) {
+    if (!selectedCreditUser?.id) {
+      return;
+    }
+
+    try {
+      const payload = await apiAdminAssignCredits(token, selectedCreditUser.id, units);
+      const updatedUser = payload.user;
+
+      if (updatedUser) {
+        setSelectedCreditUser(updatedUser);
+        setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
+      }
+
+      toast.success(t('creditsAssigned'));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function handleSubtractCredits(units) {
+    if (!selectedCreditUser?.id) {
+      return;
+    }
+
+    try {
+      const payload = await apiAdminUpdateCredits(token, selectedCreditUser.id, {
+        operation: 'subtract',
+        amount: units,
+      });
+
+      const updatedUser = payload.user;
+
+      if (updatedUser) {
+        setSelectedCreditUser(updatedUser);
+        setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
+      }
+
+      toast.success(t('creditsUpdated'));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function handleSetCredits() {
+    if (!selectedCreditUser?.id) {
+      return;
+    }
+
+    const parsed = Number(creditEditValue);
+
+    if (!Number.isInteger(parsed) || parsed < 0) {
+      toast.error(t('creditsValueInvalid'));
+      return;
+    }
+
+    try {
+      const payload = await apiAdminUpdateCredits(token, selectedCreditUser.id, {
+        operation: 'set',
+        value: parsed,
+      });
+
+      const updatedUser = payload.user;
+
+      if (updatedUser) {
+        setSelectedCreditUser(updatedUser);
+        setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
+      }
+
+      toast.success(t('creditsUpdated'));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function handleDeleteCredits() {
+    if (!selectedCreditUser?.id) {
+      return;
+    }
+
+    try {
+      const payload = await apiAdminUpdateCredits(token, selectedCreditUser.id, {
+        operation: 'set',
+        value: 0,
+      });
+
+      const updatedUser = payload.user;
+
+      if (updatedUser) {
+        setSelectedCreditUser(updatedUser);
+        setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
+      }
+
+      toast.success(t('creditsDeleted'));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
   useEffect(() => {
     if (!reservationModalState.open) {
       return undefined;
@@ -509,6 +655,11 @@ export function App() {
     setAdminClassSessions([]);
     setClassReservationsByClass({});
     setExpandedClassId(null);
+    setCreditsQuery('');
+    setCreditUsers([]);
+    setCreditsLoading(false);
+    setSelectedCreditUser(null);
+    setCreditEditValue('');
     toast.success(t('authSignedOut'));
   }
 
@@ -606,6 +757,18 @@ export function App() {
             onToggleReservations={handleToggleReservations}
             onCreateReservation={openReservationModal}
             onDeleteReservation={handleDeleteReservation}
+            creditsQuery={creditsQuery}
+            creditUsers={creditUsers}
+            creditsLoading={creditsLoading}
+            selectedCreditUser={selectedCreditUser}
+            creditEditValue={creditEditValue}
+            onCreditsQueryChange={setCreditsQuery}
+            onSelectCreditUser={setSelectedCreditUser}
+            onAssignCredits={handleAssignCredits}
+            onSubtractCredits={handleSubtractCredits}
+            onSetCredits={handleSetCredits}
+            onDeleteCredits={handleDeleteCredits}
+            onCreditEditValueChange={setCreditEditValue}
           />
         ) : (
           <ClientView
