@@ -17,6 +17,18 @@ export function defineClassModel(sequelize) {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      instructorId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+      },
+      bikeLabel: {
+        type: DataTypes.STRING(64),
+        allowNull: true,
+      },
+      startsAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       level: {
         type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
         allowNull: false,
@@ -28,13 +40,54 @@ export function defineClassModel(sequelize) {
         defaultValue: 45,
       },
       status: {
-        type: DataTypes.ENUM('active', 'inactive'),
+        type: DataTypes.ENUM('open', 'closed'),
         allowNull: false,
-        defaultValue: 'active',
+        defaultValue: 'open',
+      },
+      capacity: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+      },
+      bookedCount: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      createdBy: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        field: 'created_by',
+      },
+      updatedBy: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        field: 'updated_by',
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'created_at',
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'updated_at',
       },
     },
     {
       tableName: 'classes',
+      timestamps: false,
+      underscored: true,
+      hooks: {
+        beforeCreate(instance) {
+          const now = new Date();
+          instance.createdAt = now;
+          instance.updatedAt = now;
+        },
+        beforeUpdate(instance) {
+          instance.updatedAt = new Date();
+        },
+      },
     }
   );
 }

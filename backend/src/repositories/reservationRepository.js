@@ -1,20 +1,13 @@
-import { Booking, ClassModel, Instructor, Slot } from '../database/index.js';
+import { Booking, ClassModel, Instructor } from '../database/index.js';
 
-const SLOT_INCLUDE = {
-  model: Slot,
-  as: 'slot',
+const CLASS_INCLUDE = {
+  model: ClassModel,
+  as: 'class',
   include: [
     {
-      model: ClassModel,
-      as: 'class',
-      attributes: ['id', 'name', 'level', 'durationMinutes'],
-      include: [
-        {
-          model: Instructor,
-          as: 'instructor',
-          attributes: ['id', 'name', 'specialty'],
-        },
-      ],
+      model: Instructor,
+      as: 'instructor',
+      attributes: ['id', 'name', 'specialty', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
     },
   ],
 };
@@ -27,21 +20,21 @@ export function findBookingById(bookingId, transaction) {
   return Booking.findByPk(bookingId, {
     transaction,
     lock: transaction?.LOCK?.UPDATE,
-    include: [SLOT_INCLUDE],
+    include: [CLASS_INCLUDE],
   });
 }
 
 export function findUserBookings(userId) {
   return Booking.findAll({
     where: { userId },
-    include: [SLOT_INCLUDE],
+    include: [CLASS_INCLUDE],
     order: [['createdAt', 'DESC']],
   });
 }
 
-export function findActiveBooking(userId, slotId, transaction) {
+export function findActiveBooking(userId, classId, transaction) {
   return Booking.findOne({
-    where: { userId, slotId, status: 'active' },
+    where: { userId, classId, status: 'active' },
     transaction,
     lock: transaction?.LOCK?.UPDATE,
   });

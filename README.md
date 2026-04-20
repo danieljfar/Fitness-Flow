@@ -72,7 +72,7 @@ La UI queda en `http://localhost:5173` y la API en `http://localhost:4000`.
 * `GET /health`
 * `POST /api/auth/register`
 * `POST /api/auth/login`
-* `GET /api/slots`
+* `GET /api/classes`
 * `POST /api/reservations`
 * `DELETE /api/reservations/:id`
 

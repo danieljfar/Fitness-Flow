@@ -26,7 +26,7 @@ export function createApp() {
     res.json({
       name: 'Fitness Flow API',
       version: '1.0.0',
-      endpoints: ['/health', '/docs', '/docs.json', '/api/auth', '/api/slots', '/api/bookings'],
+      endpoints: ['/health', '/docs', '/docs.json', '/api/auth', '/api/classes', '/api/bookings'],
     });
   });
 

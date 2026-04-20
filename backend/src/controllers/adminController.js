@@ -1,9 +1,7 @@
 import {
-  createAdminSlotRecord,
   createClassRecord,
   createInstructorRecord,
   getAdminDashboard,
-  getAdminSlots,
   getClasses,
   getInstructors,
 } from '../services/adminService.js';
@@ -28,7 +26,7 @@ export async function listInstructorsHandler(req, res, next) {
 
 export async function createInstructorHandler(req, res, next) {
   try {
-    const instructor = await createInstructorRecord(req.body);
+    const instructor = await createInstructorRecord(req.body, req.user.id);
     return res.status(201).json({ instructor });
   } catch (error) {
     return next(error);
@@ -46,26 +44,26 @@ export async function listClassesHandler(req, res, next) {
 
 export async function createClassHandler(req, res, next) {
   try {
-    const classItem = await createClassRecord(req.body);
+    const classItem = await createClassRecord(req.body, req.user.id);
     return res.status(201).json({ class: classItem });
   } catch (error) {
     return next(error);
   }
 }
 
-export async function listAdminSlotsHandler(req, res, next) {
+export async function listClassesHandler(req, res, next) {
   try {
-    const slots = await getAdminSlots();
-    return res.json({ slots });
+    const classes = await getClasses();
+    return res.json({ classes });
   } catch (error) {
     return next(error);
   }
 }
 
-export async function createAdminSlotHandler(req, res, next) {
+export async function createClassHandler(req, res, next) {
   try {
-    const slot = await createAdminSlotRecord(req.body);
-    return res.status(201).json({ slot });
+    const classItem = await createClassRecord(req.body, req.user.id);
+    return res.status(201).json({ class: classItem });
   } catch (error) {
     return next(error);
   }

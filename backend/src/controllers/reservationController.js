@@ -1,8 +1,8 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { cancelReservation, listReservations, reserveSlot } from '../services/reservationService.js';
+import { cancelReservation, listReservations, reserveClass } from '../services/reservationService.js';
 
 export const createReservation = asyncHandler(async (req, res) => {
-  const booking = await reserveSlot(req.user.id, Number(req.body.slotId));
+  const booking = await reserveClass(req.user.id, Number(req.body.classId));
   res.status(201).json({ booking, reservation: booking });
 });
 

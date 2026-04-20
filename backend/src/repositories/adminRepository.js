@@ -1,14 +1,14 @@
-import { Booking, ClassModel, Instructor, Slot, User, sequelize } from '../database/index.js';
+import { Booking, ClassModel, Instructor, User, sequelize } from '../database/index.js';
 
 const CLASS_INCLUDES = [
   {
     model: Instructor,
     as: 'instructor',
-    attributes: ['id', 'name', 'specialty', 'status'],
+    attributes: ['id', 'name', 'specialty', 'status', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
   },
 ];
 
-const SLOT_INCLUDES = [
+const CLASS_INCLUDES = [
   {
     model: ClassModel,
     as: 'class',
@@ -36,25 +36,13 @@ export function createClass(data) {
   return ClassModel.create(data);
 }
 
-export function listAdminSlots() {
-  return Slot.findAll({
-    include: SLOT_INCLUDES,
-    order: [['startsAt', 'ASC']],
-  });
-}
-
-export function createAdminSlot(data) {
-  return Slot.create(data);
-}
-
 export async function getDashboardMetrics() {
-  const [users, instructors, classes, slots, activeBookings, seatStats] = await Promise.all([
+  const [users, instructors, classes, activeBookings, seatStats] = await Promise.all([
     User.count(),
     Instructor.count(),
     ClassModel.count(),
-    Slot.count(),
     Booking.count({ where: { status: 'active' } }),
-    Slot.findAll({
+    ClassModel.findAll({
       attributes: [
         [sequelize.fn('SUM', sequelize.col('capacity')), 'totalCapacity'],
         [sequelize.fn('SUM', sequelize.col('bookedCount')), 'totalBooked'],
@@ -70,7 +58,6 @@ export async function getDashboardMetrics() {
     users,
     instructors,
     classes,
-    slots,
     activeBookings,
     totalCapacity,
     totalBooked,

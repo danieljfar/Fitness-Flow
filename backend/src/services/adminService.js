@@ -1,9 +1,7 @@
 import {
-  createAdminSlot,
   createClass,
   createInstructor,
   getDashboardMetrics,
-  listAdminSlots,
   listClasses,
   listInstructors,
 } from '../repositories/adminRepository.js';
@@ -17,60 +15,44 @@ function serializeInstructor(instructor) {
     specialty: instructor.specialty,
     bio: instructor.bio,
     status: instructor.status,
+    createdBy: instructor.createdBy,
+    updatedBy: instructor.updatedBy,
     createdAt: instructor.createdAt,
     updatedAt: instructor.updatedAt,
   };
 }
 
 function serializeClass(classItem) {
+  const instructor = classItem.instructor || null;
+
   return {
     id: classItem.id,
+    title: classItem.name,
     name: classItem.name,
     description: classItem.description,
+    bikeLabel: classItem.bikeLabel,
+    startsAt: classItem.startsAt,
     level: classItem.level,
     durationMinutes: classItem.durationMinutes,
+    capacity: classItem.capacity,
+    bookedCount: classItem.bookedCount,
     status: classItem.status,
     instructorId: classItem.instructorId,
-    instructor: classItem.instructor
+    createdBy: classItem.createdBy,
+    updatedBy: classItem.updatedBy,
+    classId: classItem.id,
+    instructor: instructor
       ? {
-          id: classItem.instructor.id,
-          name: classItem.instructor.name,
-          specialty: classItem.instructor.specialty,
-          status: classItem.instructor.status,
+          id: instructor.id,
+          name: instructor.name,
+          specialty: instructor.specialty,
+          status: instructor.status,
+          createdBy: instructor.createdBy,
+          updatedBy: instructor.updatedBy,
         }
       : null,
     createdAt: classItem.createdAt,
     updatedAt: classItem.updatedAt,
-  };
-}
-
-function serializeSlot(slot) {
-  return {
-    id: slot.id,
-    title: slot.title,
-    bikeLabel: slot.bikeLabel,
-    startsAt: slot.startsAt,
-    capacity: slot.capacity,
-    bookedCount: slot.bookedCount,
-    status: slot.status,
-    classId: slot.classId,
-    class: slot.class
-      ? {
-          id: slot.class.id,
-          name: slot.class.name,
-          level: slot.class.level,
-          durationMinutes: slot.class.durationMinutes,
-          instructor: slot.class.instructor
-            ? {
-                id: slot.class.instructor.id,
-                name: slot.class.instructor.name,
-                specialty: slot.class.instructor.specialty,
-              }
-            : null,
-        }
-      : null,
-    createdAt: slot.createdAt,
-    updatedAt: slot.updatedAt,
   };
 }
 
@@ -83,7 +65,7 @@ export async function getInstructors() {
   return instructors.map(serializeInstructor);
 }
 
-export async function createInstructorRecord(payload) {
+export async function createInstructorRecord(payload, actorId) {
   const name = payload?.name?.trim();
 
   if (!name) {
@@ -96,6 +78,8 @@ export async function createInstructorRecord(payload) {
     specialty: payload?.specialty?.trim() || null,
     bio: payload?.bio?.trim() || null,
     status: payload?.status || 'active',
+    createdBy: actorId ?? null,
+    updatedBy: actorId ?? null,
   });
 
   return serializeInstructor(instructor);
@@ -106,7 +90,7 @@ export async function getClasses() {
   return classes.map(serializeClass);
 }
 
-export async function createClassRecord(payload) {
+export async function createClassRecord(payload, actorId) {
   const name = payload?.name?.trim();
   const instructorId = Number(payload?.instructorId);
 
@@ -123,50 +107,18 @@ export async function createClassRecord(payload) {
     description: payload?.description?.trim() || null,
     level: payload?.level || 'beginner',
     durationMinutes: Number(payload?.durationMinutes) || 45,
-    status: payload?.status || 'active',
+    status: payload?.status || 'open',
     instructorId,
+    createdBy: actorId ?? null,
+    updatedBy: actorId ?? null,
+    bikeLabel: payload?.bikeLabel?.trim() || null,
+    startsAt: payload?.startsAt || null,
+    capacity: Number(payload?.capacity) || null,
+    bookedCount: Number(payload?.bookedCount) || 0,
   });
 
   const classes = await listClasses();
   const created = classes.find((item) => item.id === classItem.id);
 
   return serializeClass(created || classItem);
-}
-
-export async function getAdminSlots() {
-  const slots = await listAdminSlots();
-  return slots.map(serializeSlot);
-}
-
-export async function createAdminSlotRecord(payload) {
-  const classId = Number(payload?.classId);
-  const startsAt = payload?.startsAt;
-  const capacity = Number(payload?.capacity);
-
-  if (!Number.isInteger(classId) || classId <= 0) {
-    throw new ApiError(400, 'Valid classId is required');
-  }
-
-  if (!startsAt || Number.isNaN(Date.parse(startsAt))) {
-    throw new ApiError(400, 'Valid startsAt is required');
-  }
-
-  if (!Number.isInteger(capacity) || capacity <= 0) {
-    throw new ApiError(400, 'Valid capacity is required');
-  }
-
-  const slot = await createAdminSlot({
-    title: payload?.title?.trim() || 'Cycling Session',
-    bikeLabel: payload?.bikeLabel?.trim() || null,
-    classId,
-    startsAt,
-    capacity,
-    bookedCount: 0,
-    status: payload?.status || 'open',
-  });
-
-  const slots = await listAdminSlots();
-  const created = slots.find((item) => item.id === slot.id);
-
-  return serializeSlot(created || slot);
 }

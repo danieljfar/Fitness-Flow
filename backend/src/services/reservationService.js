@@ -2,29 +2,41 @@ import { sequelize } from '../database/index.js';
 import { emitSocketEvent } from '../config/socket.js';
 import { ApiError } from '../utils/apiError.js';
 import { createBooking, findActiveBooking, findBookingById, findUserBookings } from '../repositories/reservationRepository.js';
-import { findSlotById } from '../repositories/slotRepository.js';
+import { findClassById } from '../repositories/classRepository.js';
 
 function serializeBooking(booking) {
+  const classItem = booking.class;
+
   return {
     id: booking.id,
     status: booking.status,
     userId: booking.userId,
-    slotId: booking.slotId,
+    classId: booking.classId,
     externalBookingId: booking.externalBookingId,
+    createdBy: booking.createdBy,
+    updatedBy: booking.updatedBy,
     createdAt: booking.createdAt,
     updatedAt: booking.updatedAt,
-    slot: booking.slot
+    class: classItem
       ? {
-          id: booking.slot.id,
-          title: booking.slot.title,
-          bikeLabel: booking.slot.bikeLabel,
-          startsAt: booking.slot.startsAt,
-          capacity: booking.slot.capacity,
-          bookedCount: booking.slot.bookedCount,
-          class: booking.slot.class
+          id: classItem.id,
+          name: classItem.name,
+          description: classItem.description,
+          level: classItem.level,
+          durationMinutes: classItem.durationMinutes,
+          status: classItem.status,
+          instructorId: classItem.instructorId,
+          createdBy: classItem.createdBy,
+          updatedBy: classItem.updatedBy,
+          createdAt: classItem.createdAt,
+          updatedAt: classItem.updatedAt,
+          instructor: classItem.instructor
             ? {
-                id: booking.slot.class.id,
-                name: booking.slot.class.name,
+                id: classItem.instructor.id,
+                name: classItem.instructor.name,
+                specialty: classItem.instructor.specialty,
+                createdBy: classItem.instructor.createdBy,
+                updatedBy: classItem.instructor.updatedBy,
               }
             : null,
         }
@@ -32,49 +44,51 @@ function serializeBooking(booking) {
   };
 }
 
-export async function reserveSlot(userId, slotId) {
+export async function reserveClass(userId, classId) {
   const transaction = await sequelize.transaction();
 
   try {
-    const slot = await findSlotById(slotId, transaction);
+    const classItem = await findClassById(classId, transaction);
 
-    if (!slot) {
-      throw new ApiError(404, 'Slot not found');
+    if (!classItem) {
+      throw new ApiError(404, 'Class not found');
     }
 
-    const activeBooking = await findActiveBooking(userId, slotId, transaction);
+    const activeBooking = await findActiveBooking(userId, classId, transaction);
 
     if (activeBooking) {
-      throw new ApiError(409, 'You already have an active booking for this slot');
+      throw new ApiError(409, 'You already have an active booking for this class');
     }
 
-    if (slot.bookedCount >= slot.capacity) {
-      throw new ApiError(409, 'Slot is full');
+    if (classItem.bookedCount >= classItem.capacity) {
+      throw new ApiError(409, 'Class is full');
     }
 
-    slot.bookedCount += 1;
-    await slot.save({ transaction });
+    classItem.bookedCount += 1;
+    await classItem.save({ transaction });
 
     const booking = await createBooking(
       {
         userId,
-        slotId,
+        classId,
         status: 'active',
+        createdBy: userId,
+        updatedBy: userId,
       },
       transaction
     );
 
     await transaction.commit();
 
-    emitSocketEvent('slot_updated', {
-      slotId: slot.id,
-      bookedCount: slot.bookedCount,
-      capacity: slot.capacity,
+    emitSocketEvent('class_updated', {
+      classId: classItem.id,
+      bookedCount: classItem.bookedCount,
+      capacity: classItem.capacity,
     });
 
     return serializeBooking({
       ...booking.toJSON(),
-      slot: slot.toJSON(),
+      class: classItem.toJSON(),
     });
   } catch (error) {
     await transaction.rollback();
@@ -100,29 +114,31 @@ export async function cancelReservation(userId, reservationId) {
       throw new ApiError(409, 'Booking was already cancelled');
     }
 
-    const slot = await findSlotById(booking.slotId, transaction);
+    const classItem = await findClassById(booking.classId, transaction);
 
     booking.status = 'cancelled';
+    booking.updatedBy = userId;
     await booking.save({ transaction });
 
-    if (slot && slot.bookedCount > 0) {
-      slot.bookedCount -= 1;
-      await slot.save({ transaction });
+    if (classItem && classItem.bookedCount > 0) {
+      classItem.bookedCount -= 1;
+      classItem.updatedBy = userId;
+      await classItem.save({ transaction });
     }
 
     await transaction.commit();
 
-    if (slot) {
-      emitSocketEvent('slot_updated', {
-        slotId: slot.id,
-        bookedCount: slot.bookedCount,
-        capacity: slot.capacity,
+    if (classItem) {
+      emitSocketEvent('class_updated', {
+        classId: classItem.id,
+        bookedCount: classItem.bookedCount,
+        capacity: classItem.capacity,
       });
     }
 
     return serializeBooking({
       ...booking.toJSON(),
-      slot: slot ? slot.toJSON() : booking.slot,
+      class: classItem ? classItem.toJSON() : booking.class,
     });
   } catch (error) {
     await transaction.rollback();
