@@ -10,7 +10,6 @@ export function Instructors({ t, instructors, onSelectInstructor }) {
             <div className="min-w-0">
               <div className="class-title mb-0">{instructor.name}</div>
               <div className="class-meta">{instructor.specialty || t('noSpecialty')}</div>
-              <div className="class-meta">{t('instructorOccupancy')}: {instructor.occupancyRate ?? 0}%</div>
             </div>
 
             <div className="d-flex align-items-center gap-2">

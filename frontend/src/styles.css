@@ -349,6 +349,40 @@ body {
   font-weight: 600;
 }
 
+.home-user-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.86rem;
+  color: rgba(17, 24, 39, 0.72);
+  font-weight: 700;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 999px;
+  padding: 0.34rem 0.65rem;
+  background: rgba(255, 255, 255, 0.65);
+  width: fit-content;
+}
+
+.home-feature-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.home-feature-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #0f172a;
+  border: 1px solid rgba(17, 24, 39, 0.11);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.94), rgba(247, 248, 250, 0.86));
+}
+
 .customer-next-class-card {
   border: 1px solid rgba(17, 24, 39, 0.1);
   border-radius: 1rem;
@@ -384,6 +418,20 @@ body {
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+.customer-focus-value-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.52rem;
+}
+
+.customer-focus-index {
+  font-size: 0.72rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(17, 24, 39, 0.58);
 }
 
 .customer-featured-card {
@@ -485,6 +533,47 @@ body {
 .instructor-highlight-list {
   display: grid;
   gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.instructor-highlight-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.instructor-avatar {
+  width: 2.45rem;
+  height: 2.45rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #0f172a;
+  background: linear-gradient(140deg, rgba(15, 118, 110, 0.22), rgba(217, 119, 6, 0.24));
+  border: 1px solid rgba(17, 24, 39, 0.12);
+}
+
+.instructor-highlight-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.instructor-mini-kpi {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 24, 39, 0.11);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.2rem 0.58rem;
+  color: rgba(17, 24, 39, 0.75);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .admin-block {
@@ -737,6 +826,14 @@ body {
 
   .hero-side-title {
     font-size: 1.2rem;
+  }
+
+  .home-feature-pill {
+    font-size: 0.73rem;
+  }
+
+  .instructor-highlight-list {
+    grid-template-columns: 1fr;
   }
 }
 

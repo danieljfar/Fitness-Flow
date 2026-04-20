@@ -2,7 +2,7 @@ import { Badge, Button, Card, Col } from 'react-bootstrap';
 
 export function Classes({ t, classes, reservations, formatDateTime, onReserve }) {
   return (
-    <Col xl={7}>
+    <Col xl={12}>
       <Card className="panel-card h-100 border-0 shadow-sm">
         <Card.Body className="p-4">
           <div className="section-heading mb-3">{t('sessionClasses')}</div>

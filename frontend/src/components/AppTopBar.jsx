@@ -47,6 +47,11 @@ export function AppTopBar({
                 </Button>
               ))}
             </div>
+            {user ? (
+              <span className="welcome-line">
+                {t('signedAs')} {user.name}
+              </span>
+            ) : null}
           </div>
 
           <div className="auth-control">
@@ -72,9 +77,6 @@ export function AppTopBar({
                     {t('profileSection')}
                   </Button>
                 ) : null}
-                <span className="welcome-line">
-                  {t('signedAs')} {user.name}
-                </span>
                 <Button variant="outline-dark" size="sm" className="rounded-pill" onClick={onLogout}>
                   {t('logout')}
                 </Button>

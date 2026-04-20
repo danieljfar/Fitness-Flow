@@ -12,6 +12,8 @@ export function Home({
 	onSelectInstructor,
 	onViewAllInstructors,
 }) {
+	const homeHighlights = [t('homeBadgeCuratedClasses'), t('homeBadgeFastBooking'), t('homeBadgeRealtimeSync')];
+
 	const homeFocus = [
 		{ icon: <FiUsers />, label: t('availableSeats'), value: booting ? '...' : totalSeats },
 		{ icon: <FiRefreshCw />, label: t('liveClasses'), value: booting ? '...' : liveClasses },
@@ -28,8 +30,20 @@ export function Home({
 								<FiActivity className="me-2" />
 								{t('eyebrow')}
 							</div>
+
+							{user?.name ? <div className="home-user-line mb-2">{t('signedAs')} {user.name}</div> : null}
+
 							<h1 className="hero-title mb-3">Fitico</h1>
 							<p className="hero-copy mb-4">{t('heroCopy')}</p>
+
+							<div className="home-feature-pills mb-4">
+								{homeHighlights.map((item) => (
+									<span key={item} className="home-feature-pill">
+										{item}
+									</span>
+								))}
+							</div>
+
 							<div className="home-hero-actions">
 								<Button className="rounded-pill action-button" onClick={onViewAllInstructors}>
 									{t('homeCtaInstructors')}
@@ -47,13 +61,16 @@ export function Home({
 							<div className="section-heading mb-2">{t('homeFocusTitle')}</div>
 							<div className="customer-panel-title mb-3">{t('homeFocusSubtitle')}</div>
 							<div className="customer-focus-list">
-								{homeFocus.map((item) => (
+								{homeFocus.map((item, index) => (
 									<div key={item.label} className="customer-focus-item">
 										<div className="customer-focus-label">
 											{item.icon}
 											<span>{item.label}</span>
 										</div>
-										<div className="customer-focus-value">{item.value}</div>
+										<div className="customer-focus-value-wrap">
+											<span className="customer-focus-index">0{index + 1}</span>
+											<div className="customer-focus-value">{item.value}</div>
+										</div>
 									</div>
 								))}
 							</div>
@@ -79,8 +96,28 @@ export function Home({
 											className="instructor-highlight-item instructor-highlight-button"
 											onClick={() => onSelectInstructor?.(instructor)}
 										>
-											<div className="class-title mb-1">{instructor.name}</div>
-											<div className="class-meta">{instructor.specialty || t('noSpecialty')}</div>
+											<div className="instructor-highlight-top">
+												<div className="instructor-avatar">
+													{(instructor.name || t('coachLabel'))
+														.split(' ')
+														.slice(0, 2)
+														.map((part) => part.charAt(0).toUpperCase())
+														.join('')}
+												</div>
+												<div className="min-w-0">
+													<div className="class-title mb-1">{instructor.name}</div>
+													<div className="class-meta text-truncate">{instructor.specialty || t('noSpecialty')}</div>
+												</div>
+											</div>
+
+											<div className="instructor-highlight-metrics mt-3">
+												<span className="instructor-mini-kpi">
+													{Math.max(0, Number(instructor.classes?.length) || 0)} {t('classes')}
+												</span>
+												<span className="instructor-mini-kpi">
+													{Math.max(0, Number(instructor.sessions?.length) || 0)} {t('classSessions')}
+												</span>
+											</div>
 										</button>
 									))
 								)}

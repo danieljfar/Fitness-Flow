@@ -1,12 +1,10 @@
 import { Badge, Button, Card, Col, ListGroup, Row } from 'react-bootstrap';
-import { FiArrowLeft, FiCalendar, FiClock, FiMail, FiTrendingUp, FiUser } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiClock, FiMail, FiUser } from 'react-icons/fi';
 
 export function InstructorProfile({ t, instructor, formatDateTime, onBack }) {
   if (!instructor) {
     return null;
   }
-
-  const occupancyLabel = instructor.totalCapacity > 0 ? `${instructor.occupancyRate}%` : '--';
 
   return (
     <section className="instructor-profile-page">
@@ -28,11 +26,11 @@ export function InstructorProfile({ t, instructor, formatDateTime, onBack }) {
           <Row className="g-3">
             <Col md={4}>
               <div className="instructor-kpi-card">
-                <div className="section-heading mb-2">{t('instructorOccupancy')}</div>
-                <div className="stat-value">{occupancyLabel}</div>
+                <div className="section-heading mb-2">{t('specialty')}</div>
+                <div className="stat-value">{instructor.specialty || t('noSpecialty')}</div>
                 <div className="class-meta">
-                  <FiTrendingUp className="me-2" />
-                  {instructor.totalBooked}/{instructor.totalCapacity || 0} {t('booked')}
+                  <FiUser className="me-2" />
+                  {instructor.status || t('statusUnknown')}
                 </div>
               </div>
             </Col>
@@ -112,7 +110,7 @@ export function InstructorProfile({ t, instructor, formatDateTime, onBack }) {
                     {session.startsAt ? formatDateTime(session.startsAt) : t('scheduled')}
                   </div>
                   <div className="class-meta">
-                    {session.bookedCount || 0}/{session.capacity || 0} {t('booked')}
+                    {session.class?.level ? t(session.class.level) : t('statusUnknown')} · {session.class?.durationMinutes || 0} min
                   </div>
                 </div>
               ))}
