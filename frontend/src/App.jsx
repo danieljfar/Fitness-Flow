@@ -832,13 +832,34 @@ export function App() {
   const instructors = useMemo(() => {
     const byInstructor = new Map();
 
+    function getSessionKey(classSession) {
+      if (classSession?.id != null) {
+        return `session:${String(classSession.id)}`;
+      }
+
+      return `session:${String(classSession?.class?.id ?? classSession?.classId ?? '')}:${String(classSession?.startsAt ?? '')}:${String(classSession?.title ?? '')}:${String(classSession?.bikeLabel ?? '')}`;
+    }
+
+    function getClassKey(classEntity) {
+      if (!classEntity) {
+        return null;
+      }
+
+      if (classEntity.id != null) {
+        return `class:${String(classEntity.id)}`;
+      }
+
+      return `class:${String(classEntity.name ?? '')}:${String(classEntity.level ?? '')}:${String(classEntity.durationMinutes ?? '')}`;
+    }
+
     classes.forEach((classSession) => {
       const instructorEntity = classSession.class?.instructor || classSession.instructor;
       const classEntity = classSession.class || null;
 
       const fallbackName = instructorEntity?.name || t('coachLabel');
       const fallbackSpecialty = instructorEntity?.specialty || classEntity?.name || t('noSpecialty');
-      const id = instructorEntity?.id || `${fallbackName}-${fallbackSpecialty}`;
+      const rawInstructorId = instructorEntity?.id || `${fallbackName}-${fallbackSpecialty}`;
+      const id = String(rawInstructorId);
 
       if (!byInstructor.has(id)) {
         byInstructor.set(id, {
@@ -850,6 +871,8 @@ export function App() {
           status: instructorEntity?.status || 'active',
           classes: [],
           sessions: [],
+          classKeys: new Set(),
+          sessionKeys: new Set(),
           totalCapacity: 0,
           totalBooked: 0,
           occupancyRate: 0,
@@ -857,18 +880,28 @@ export function App() {
       }
 
       const current = byInstructor.get(id);
-      current.sessions.push(classSession);
-      current.totalCapacity += Number(classSession.capacity) || 0;
-      current.totalBooked += Number(classSession.bookedCount) || 0;
+      const sessionKey = getSessionKey(classSession);
 
-      if (classEntity && classEntity.id && !current.classes.some((item) => item.id === classEntity.id)) {
+      if (!current.sessionKeys.has(sessionKey)) {
+        current.sessionKeys.add(sessionKey);
+        current.sessions.push(classSession);
+        current.totalCapacity += Number(classSession.capacity) || 0;
+        current.totalBooked += Number(classSession.bookedCount) || 0;
+      }
+
+      const classKey = getClassKey(classEntity);
+      if (classKey && !current.classKeys.has(classKey)) {
+        current.classKeys.add(classKey);
         current.classes.push(classEntity);
       }
     });
 
     return Array.from(byInstructor.values())
       .map((instructor) => ({
-        ...instructor,
+        ...(() => {
+          const { classKeys, sessionKeys, ...safeInstructor } = instructor;
+          return safeInstructor;
+        })(),
         occupancyRate:
           instructor.totalCapacity > 0
             ? Math.round((instructor.totalBooked / instructor.totalCapacity) * 100)

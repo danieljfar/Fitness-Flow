@@ -60,6 +60,7 @@ describe('authService', () => {
         name: 'Jane',
         email: 'jane@fitico.io',
         role: 'member',
+        credit: { balance: 0 },
         createdAt: new Date('2026-04-19T08:00:00.000Z'),
       });
       jwtMock.sign.mockReturnValueOnce('jwt-token');
@@ -81,6 +82,7 @@ describe('authService', () => {
         user: {
           id: 2,
           email: 'jane@fitico.io',
+          credits: 0,
         },
       });
     });
@@ -124,6 +126,7 @@ describe('authService', () => {
         email: 'john@fitico.io',
         role: 'admin',
         passwordHash: 'hashed',
+        credit: { balance: 5 },
         createdAt: new Date('2026-04-19T08:00:00.000Z'),
       });
       bcryptMock.compare.mockResolvedValueOnce(true);
@@ -137,6 +140,7 @@ describe('authService', () => {
         user: {
           id: 8,
           role: 'admin',
+          credits: 5,
         },
       });
     });
@@ -159,6 +163,7 @@ describe('authService', () => {
         name: 'Luke',
         email: 'luke@fitico.io',
         role: 'member',
+        credit: { balance: 9 },
         createdAt: new Date('2026-04-19T08:00:00.000Z'),
         passwordHash: 'should-not-leak',
       });
@@ -170,6 +175,7 @@ describe('authService', () => {
         name: 'Luke',
         email: 'luke@fitico.io',
         role: 'member',
+        credits: 9,
         createdAt: new Date('2026-04-19T08:00:00.000Z'),
       });
     });

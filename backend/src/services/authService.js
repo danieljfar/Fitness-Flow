@@ -24,6 +24,7 @@ function sanitizeUser(user) {
     name: user.name,
     email: user.email,
     role: user.role,
+    credits: Number(user.credit?.balance || 0),
     createdAt: user.createdAt,
   };
 }

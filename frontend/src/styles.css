@@ -793,6 +793,47 @@ body {
   background: rgba(255, 255, 255, 0.72) !important;
 }
 
+.reservation-card-row {
+  padding: 1rem 1.05rem !important;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.reservation-card-row:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 118, 110, 0.22) !important;
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+}
+
+.reservation-card-row .badge {
+  align-self: flex-start;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  text-transform: lowercase;
+}
+
+.reservation-detail-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.reservation-detail-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  background: rgba(255, 255, 255, 0.86);
+  color: rgba(17, 24, 39, 0.78);
+  padding: 0.22rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.reservation-card-row .btn-outline-danger {
+  border-width: 1px;
+}
+
 .empty-state {
   min-height: 8rem;
   display: grid;
@@ -846,6 +887,19 @@ body {
 
   .instructor-highlight-list {
     grid-template-columns: 1fr;
+  }
+
+  .reservation-card-row {
+    padding: 0.9rem !important;
+  }
+
+  .reservation-card-row .badge {
+    font-size: 0.8rem;
+    padding: 0.42rem 0.62rem;
+  }
+
+  .reservation-detail-pill {
+    font-size: 0.76rem;
   }
 }
 
