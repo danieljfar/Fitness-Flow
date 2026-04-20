@@ -14,6 +14,11 @@ export function defineBookingModel(sequelize) {
         allowNull: false,
         defaultValue: 'active',
       },
+      creditId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        field: 'credit_id',
+      },
       createdBy: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: true,

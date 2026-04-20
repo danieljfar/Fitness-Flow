@@ -13,7 +13,6 @@ function serializeClass(classItem) {
     id: classItem.id,
     title: classItem.name,
     name: classItem.name,
-    bikeLabel: classItem.bikeLabel,
     startsAt: classItem.startsAt,
     startsAtLabel: moment(classItem.startsAt).format('YYYY-MM-DD HH:mm'),
     capacity: classItem.capacity,

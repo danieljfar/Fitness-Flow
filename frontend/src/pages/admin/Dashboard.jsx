@@ -52,81 +52,79 @@ export function Dashboard({
   onCreditEditValueChange,
 }) {
   return (
-    <Card className="panel-card border-0 shadow-sm">
-      <Card.Body className="p-4">
-        <Row className="g-3 mb-4">
-          <Col md={6} lg={4} xl={3}>
-            <StatCard icon={<FiUsers />} label={t('users')} value={adminLoading ? '...' : adminMetrics?.users ?? 0} />
-          </Col>
-          <Col md={6} lg={4} xl={3}>
-            <StatCard icon={<FiActivity />} label={t('instructors')} value={adminLoading ? '...' : adminMetrics?.instructors ?? 0} />
-          </Col>
-          <Col md={6} lg={4} xl={2}>
-            <StatCard icon={<FiClock />} label={t('classes')} value={adminLoading ? '...' : adminMetrics?.classes ?? 0} />
-          </Col>
-          <Col md={6} lg={6} xl={2}>
-            <StatCard
-              icon={<FiLock />}
-              label={t('activeBookings')}
-              value={adminLoading ? '...' : adminMetrics?.activeBookings ?? 0}
-            />
-          </Col>
-          <Col md={6} lg={6} xl={2}>
-            <StatCard
-              icon={<FiArrowRight />}
-              label={t('occupancy')}
-              value={adminLoading ? '...' : `${adminMetrics?.occupancyRate ?? 0}%`}
-            />
-          </Col>
-        </Row>
+    <>
+      <Row className="g-3 mb-4">
+        <Col md={6} lg={4} xl={3}>
+          <StatCard icon={<FiUsers />} label={t('users')} value={adminLoading ? '...' : adminMetrics?.users ?? 0} />
+        </Col>
+        <Col md={6} lg={4} xl={3}>
+          <StatCard icon={<FiActivity />} label={t('instructors')} value={adminLoading ? '...' : adminMetrics?.instructors ?? 0} />
+        </Col>
+        <Col md={6} lg={4} xl={2}>
+          <StatCard icon={<FiClock />} label={t('classes')} value={adminLoading ? '...' : adminMetrics?.classes ?? 0} />
+        </Col>
+        <Col md={6} lg={6} xl={2}>
+          <StatCard
+            icon={<FiLock />}
+            label={t('activeBookings')}
+            value={adminLoading ? '...' : adminMetrics?.activeBookings ?? 0}
+          />
+        </Col>
+        <Col md={6} lg={6} xl={2}>
+          <StatCard
+            icon={<FiArrowRight />}
+            label={t('occupancy')}
+            value={adminLoading ? '...' : `${adminMetrics?.occupancyRate ?? 0}%`}
+          />
+        </Col>
+      </Row>
 
-        <Row className="g-4">
-          <Col xs={12}>
-            <InstructorsManager
-              t={t}
-              instructors={adminInstructors}
-              classes={adminClasses}
-              classSessions={adminClassSessions}
-              onCreateInstructor={onCreateInstructor}
-              onEditInstructor={onEditInstructor}
-              onDeleteInstructor={onDeleteInstructor}
-            />
-          </Col>
+      <Row className="g-4">
+        <Col xs={12}>
+          <InstructorsManager
+            t={t}
+            instructors={adminInstructors}
+            classes={adminClasses}
+            classSessions={adminClassSessions}
+            onCreateInstructor={onCreateInstructor}
+            onEditInstructor={onEditInstructor}
+            onDeleteInstructor={onDeleteInstructor}
+          />
+        </Col>
 
-          <Col xs={12}>
-            <ClassesManager
-              t={t}
-              classes={adminClasses}
-              reservationsByClass={reservationsByClass}
-              expandedClassId={expandedClassId}
-              onCreateClass={onCreateClass}
-              onEditClass={onEditClass}
-              onDeleteClass={onDeleteClass}
-              onToggleReservations={onToggleReservations}
-              onCreateReservation={onCreateReservation}
-              onDeleteReservation={onDeleteReservation}
-            />
-          </Col>
+        <Col xs={12}>
+          <ClassesManager
+            t={t}
+            classes={adminClasses}
+            reservationsByClass={reservationsByClass}
+            expandedClassId={expandedClassId}
+            onCreateClass={onCreateClass}
+            onEditClass={onEditClass}
+            onDeleteClass={onDeleteClass}
+            onToggleReservations={onToggleReservations}
+            onCreateReservation={onCreateReservation}
+            onDeleteReservation={onDeleteReservation}
+          />
+        </Col>
 
-          <Col xs={12}>
-            <CreditsManager
-              t={t}
-              query={creditsQuery}
-              users={creditUsers}
-              loading={creditsLoading}
-              selectedUser={selectedCreditUser}
-              editValue={creditEditValue}
-              onQueryChange={onCreditsQueryChange}
-              onSelectUser={onSelectCreditUser}
-              onAssignCredits={onAssignCredits}
-              onSubtractCredits={onSubtractCredits}
-              onSetCredits={onSetCredits}
-              onDeleteCredits={onDeleteCredits}
-              onEditValueChange={onCreditEditValueChange}
-            />
-          </Col>
-        </Row>
-      </Card.Body>
-    </Card>
+        <Col xs={12}>
+          <CreditsManager
+            t={t}
+            query={creditsQuery}
+            users={creditUsers}
+            loading={creditsLoading}
+            selectedUser={selectedCreditUser}
+            editValue={creditEditValue}
+            onQueryChange={onCreditsQueryChange}
+            onSelectUser={onSelectCreditUser}
+            onAssignCredits={onAssignCredits}
+            onSubtractCredits={onSubtractCredits}
+            onSetCredits={onSetCredits}
+            onDeleteCredits={onDeleteCredits}
+            onEditValueChange={onCreditEditValueChange}
+          />
+        </Col>
+      </Row>
+    </>
   );
 }

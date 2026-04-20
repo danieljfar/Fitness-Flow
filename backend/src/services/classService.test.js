@@ -31,7 +31,6 @@ describe('classService', () => {
       {
         id: 1,
         name: 'Strength Lab',
-        bikeLabel: 'B1',
         startsAt: new Date('2026-04-20T08:00:00.000Z'),
         capacity: 10,
         bookedCount: 4,
@@ -67,6 +66,7 @@ describe('classService', () => {
         },
       },
     });
+    expect(result[0]).not.toHaveProperty('bikeLabel');
     expect(result[0].startsAtLabel).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
   });
 

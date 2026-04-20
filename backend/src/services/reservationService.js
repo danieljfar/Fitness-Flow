@@ -20,6 +20,7 @@ function serializeBooking(booking) {
     status: booking.status,
     userId: booking.userId,
     classId: booking.classId,
+    creditId: booking.creditId,
     createdBy: booking.createdBy,
     updatedBy: booking.updatedBy,
     createdAt: booking.createdAt,
@@ -28,7 +29,6 @@ function serializeBooking(booking) {
       ? {
           id: classItem.id,
           name: classItem.name,
-          description: classItem.description,
           level: classItem.level,
           durationMinutes: classItem.durationMinutes,
           status: classItem.status,
@@ -88,6 +88,7 @@ async function reserveClassForUser(userId, classId, actorId) {
       {
         userId,
         classId,
+        creditId: credit.id,
         status: 'active',
         createdBy: actorId,
         updatedBy: actorId,

@@ -74,6 +74,7 @@ describe('reservationService', () => {
     };
 
     const credit = {
+      id: 123,
       balance: 2,
       updatedBy: null,
       save: vi.fn(),
@@ -88,6 +89,7 @@ describe('reservationService', () => {
         status: 'active',
         userId: 7,
         classId: 50,
+        creditId: 123,
       }),
     });
 
@@ -105,10 +107,19 @@ describe('reservationService', () => {
     expect(result).toMatchObject({
       id: 999,
       classId: 50,
+      creditId: 123,
       class: {
         id: 50,
       },
     });
+    expect(reservationRepositoryMock.createBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 7,
+        classId: 50,
+        creditId: 123,
+      }),
+      transactionMock
+    );
   });
 
   it('rolls back when class does not exist on reserve', async () => {
@@ -209,7 +220,6 @@ describe('reservationService', () => {
         class: {
           id: 2,
           name: 'Morning Flow',
-          description: null,
           level: 'beginner',
           durationMinutes: 45,
           status: 'open',

@@ -49,8 +49,6 @@ function serializeClass(classItem) {
     id: classItem.id,
     title: classItem.name,
     name: classItem.name,
-    description: classItem.description,
-    bikeLabel: classItem.bikeLabel,
     startsAt: classItem.startsAt,
     level: classItem.level,
     durationMinutes: classItem.durationMinutes,
@@ -341,14 +339,12 @@ export async function createClassRecord(payload, actorId) {
 
   const classItem = await createClass({
     name,
-    description: payload?.description?.trim() || null,
     level: payload?.level || 'beginner',
     durationMinutes: Number(payload?.durationMinutes) || 45,
     status: payload?.status || 'open',
     instructorId,
     createdBy: actorId ?? null,
     updatedBy: actorId ?? null,
-    bikeLabel: payload?.bikeLabel?.trim() || null,
     startsAt: payload?.startsAt || null,
     capacity: Number(payload?.capacity) || null,
     bookedCount: Number(payload?.bookedCount) || 0,
@@ -379,10 +375,6 @@ export async function updateClassRecord(classId, payload, actorId) {
     updates.name = trimmed;
   }
 
-  if (typeof payload?.description === 'string') {
-    updates.description = payload.description.trim() || null;
-  }
-
   if (typeof payload?.level === 'string') {
     updates.level = payload.level;
   }
@@ -397,10 +389,6 @@ export async function updateClassRecord(classId, payload, actorId) {
 
   if (payload?.capacity !== undefined) {
     updates.capacity = Number(payload.capacity) || null;
-  }
-
-  if (typeof payload?.bikeLabel === 'string') {
-    updates.bikeLabel = payload.bikeLabel.trim() || null;
   }
 
   if (payload?.startsAt !== undefined) {

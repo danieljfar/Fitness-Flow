@@ -88,8 +88,6 @@ describe('adminService', () => {
           class: {
             id: 3,
             name: 'Strength Lab',
-            description: 'Strength class',
-            bikeLabel: 'B1',
             startsAt: new Date('2026-04-20T08:00:00.000Z'),
             level: 'beginner',
             durationMinutes: 45,

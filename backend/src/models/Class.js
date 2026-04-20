@@ -13,17 +13,9 @@ export function defineClassModel(sequelize) {
         type: DataTypes.STRING(180),
         allowNull: false,
       },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
       instructorId: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
-      },
-      bikeLabel: {
-        type: DataTypes.STRING(64),
-        allowNull: true,
       },
       startsAt: {
         type: DataTypes.DATE,

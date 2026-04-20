@@ -24,6 +24,8 @@ Booking.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 User.hasOne(Credit, { foreignKey: 'userId', as: 'credit' });
 Credit.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Credit.hasMany(Booking, { foreignKey: 'creditId', as: 'bookings' });
+Booking.belongsTo(Credit, { foreignKey: 'creditId', as: 'credit' });
 
 Credit.belongsTo(User, { foreignKey: 'createdBy', as: 'createdByUser' });
 Credit.belongsTo(User, { foreignKey: 'updatedBy', as: 'updatedByUser' });

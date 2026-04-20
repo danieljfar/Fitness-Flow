@@ -1,5 +1,12 @@
 import { Credit } from '../database/index.js';
 
+export function findCreditById(creditId, transaction, lockForUpdate = false) {
+  return Credit.findByPk(creditId, {
+    transaction,
+    lock: lockForUpdate ? transaction?.LOCK?.UPDATE : undefined,
+  });
+}
+
 export function findCreditByUserId(userId, transaction, lockForUpdate = false) {
   return Credit.findOne({
     where: { userId },
