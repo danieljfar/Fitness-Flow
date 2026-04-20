@@ -1,59 +1,90 @@
 # Fitico
 
-Prueba técnica de reservas con arquitectura moderna, Node.js v24.x, MySQL y una interfaz React para demostrar autenticación, transacciones y actualización en tiempo real.
+Motor de reservas fitness con enfoque en concurrencia, integridad transaccional y UX en tiempo real.
+
+Stack principal:
+
+- Backend: Node.js 24+, Express, Sequelize, MySQL, Redis, JWT, Socket.IO.
+- Frontend: React 18 + Vite + React Bootstrap + Socket.IO client.
+- Infra local: Docker Compose con servicios db, redis, backend y frontend.
 
 ## Arquitectura
-El repo usa un monolito modular en backend y una SPA ligera en frontend.
 
-* `backend/`: API en Node.js ESM con Express, Sequelize, JWT, Socket.IO, Redis y MySQL.
-* `frontend/`: UI en React con Vite para reservar cupos y ver cambios en vivo.
-* `docker-compose.yml`: orquesta MySQL, Redis, backend y frontend para levantar la demo local.
+- [backend](backend): API REST ESM con patrón Controller-Service-Repository.
+- [frontend](frontend): SPA para miembros y panel admin.
+- [docker-compose.yml](docker-compose.yml): entorno reproducible para desarrollo.
 
-## Librerías destacadas
-Estas son las librerías de la lista que tienen código propio en el proyecto:
+El dominio canónico de agenda/reservas es Class. Slot solo se mantiene como evento de compatibilidad en realtime.
 
-* `express`: API HTTP y rutas.
-* `sequelize`: modelo relacional, transacciones y locks de fila.
-* `jsonwebtoken`: autenticación JWT.
-* `socket.io`: eventos `slot_updated` en tiempo real.
-* `moment`: formateo de horarios y semillas de demo.
-* `ioredis`: cache de instructores en backend con invalidación por mutaciones.
-* `react`: UI principal.
-* `react-dom`: render del frontend.
-* `socket.io-client`: suscripción a eventos realtime.
-* `react-hot-toast`: feedback UX.
-* `react-icons`: iconografía de la interfaz.
-* `react-bootstrap` y `bootstrap`: layout y componentes.
+## Capacidades actuales
 
-## Funcionalidad
-* Registro e inicio de sesión con JWT.
-* Listado de cupos con capacidad y disponibilidad.
-* Cache Redis para `GET /api/admin/instructors`.
-* Invalidación de cache de instructores al crear, actualizar o eliminar instructor.
-* Reserva y cancelación atómica con transacción de base de datos.
-* Bloqueo pesimista para evitar sobreventa.
-* Actualización en tiempo real cuando cambia la ocupación.
+- Autenticación JWT con endpoints de registro, login y perfil.
+- Reservas con transacciones Sequelize y bloqueo pesimista (SELECT FOR UPDATE).
+- Gestión de créditos por usuario:
+	- Reservar consume 1 crédito.
+	- Cancelar una reserva devuelve 1 crédito.
+	- Cancelar una clase desde admin devuelve créditos a todas las reservas activas.
+- Dashboard y operación admin:
+	- Métricas agregadas.
+	- CRUD de instructores y clases.
+	- Listado de reservas por clase.
+	- Creación/cancelación de reservas por admin.
+	- Búsqueda de usuarios y actualización de créditos (add, subtract, set, delete).
+- Cache Redis para instructores destacados con invalidación en mutaciones.
+- Realtime por Socket.IO:
+	- Eventos class_updated y slot_updated.
+	- Frontend refresca clases, reservas y datos de usuario autenticado tras cambios.
 
 ## Requisitos
-* Node.js v24.x LTS o v25 current.
-* Docker y Docker Compose.
-* MySQL disponible vía Docker o local.
-* Redis disponible vía Docker o local.
+
+- Node.js >=24 <26
+- Docker + Docker Compose
 
 ## Variables de entorno
-Copia los archivos de ejemplo y ajusta valores si es necesario.
 
-* [`.env.example`](.env.example)
-* [`backend/.env.example`](backend/.env.example)
-* [`frontend/.env.example`](frontend/.env.example)
+Plantillas disponibles:
 
-## Ejecutar localmente
+- [.env.example](.env.example)
+- [backend/.env.example](backend/.env.example)
+- [frontend/.env.example](frontend/.env.example)
+
+Variables backend clave:
+
+- DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT
+- DB_SYNC_ALTER
+- PORT
+- JWT_SECRET
+- CORS_ORIGIN
+- REDIS_URL
+
+Variables frontend clave:
+
+- VITE_API_URL
+- VITE_SOCKET_URL
+
+## Ejecucion local
+
+### Opcion 1: Docker (recomendada)
+
+```bash
+docker compose up -d --build
+```
+
+Servicios por defecto:
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:4000
+- Swagger UI: http://localhost:4000/docs
+- OpenAPI JSON: http://localhost:4000/docs.json
+
+### Opcion 2: Manual
+
 Backend:
 
 ```bash
 cd backend
 npm install
-npm start
+npm run dev
 ```
 
 Frontend:
@@ -64,21 +95,64 @@ npm install
 npm run dev
 ```
 
-Docker:
+## Scripts utiles
 
-```bash
-docker compose up -d --build
-```
+Backend ([backend/package.json](backend/package.json)):
 
-La UI queda en `http://localhost:5173` y la API en `http://localhost:4000`.
+- npm run start
+- npm run dev
+- npm run migrate
+- npm run test
 
-## API
-* `GET /health`
-* `POST /api/auth/register`
-* `POST /api/auth/login`
-* `GET /api/classes`
-* `POST /api/reservations`
-* `DELETE /api/reservations/:id`
+Frontend ([frontend/package.json](frontend/package.json)):
 
-## Presentación
-La demo local muestra un dashboard con cupos semilla, login/register, reserva/cancelación y refresco realtime sin recargar la página.
+- npm run dev
+- npm run build
+- npm run preview
+
+## API principal
+
+Public/Auth:
+
+- GET /health
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/me
+- GET /api/classes
+- GET /api/classes/featured-instructors
+
+Reservas (requiere JWT):
+
+- GET /api/reservations/me
+- POST /api/reservations
+- DELETE /api/reservations/:id
+
+Alias legacy/compatibilidad:
+
+- /api/bookings/me
+- /api/bookings
+- /api/bookings/:id
+
+Admin (requiere JWT + role admin):
+
+- GET /api/admin/dashboard
+- GET|POST|PATCH|DELETE /api/admin/instructors
+- GET|POST|PATCH|DELETE /api/admin/classes
+- GET /api/admin/classes/:classId/reservations
+- POST /api/admin/classes/:classId/reservations
+- DELETE /api/admin/reservations/:reservationId
+- GET /api/admin/users
+- POST /api/admin/credits/assign
+- PATCH /api/admin/credits/:userId
+
+## Testing
+
+- Framework: Vitest
+- Unit tests en servicios/controladores con mocks
+- Integration tests con Supertest para endpoints y flujo API
+
+## Notas de dominio
+
+- Todas las operaciones de reserva/cancelacion deben ser atomicas.
+- No introducir nuevas entidades Slot en backend; usar Class como entidad canónica.
+- Cualquier cambio que afecte saldo de créditos debe mantener sincronizado el user del frontend.
